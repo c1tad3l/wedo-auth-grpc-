@@ -1,0 +1,45 @@
+syntax="proto3";
+
+package auth;
+
+import "google/protobuf/wrappers.proto";
+
+option go_package="github.com/c1tad3l/wedo-auth-grpc-/auth/auth;authV1";
+
+service Auth{
+  rpc Register(RegisterRequest)returns(RegisterResponse);
+  rpc Login(LoginRequest)returns(LoginResponse);
+  rpc IsAdmin(IsAdminRequest)returns(IsAdminResponse);
+  rpc Logout(LogoutRequest)returns(LogoutResponse);
+}
+
+message RegisterRequest{
+string Email=2;
+string Phone=3;
+string DateOfBirth=4;
+string Username=5;
+string Password=6;
+}
+message RegisterResponse{
+string user_uuid=1;
+}
+message LoginRequest{
+string email=1;
+string password=2;
+}
+message LoginResponse{
+  string access_token=1;
+  string refresh_token=2;
+}
+message IsAdminRequest{
+  string user_uuid=1;
+}
+message IsAdminResponse{
+    bool is_admin=1;
+}
+message LogoutRequest{
+  string access_token=1;
+}
+message LogoutResponse{
+    bool success=1;
+}
