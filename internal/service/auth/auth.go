@@ -62,7 +62,7 @@ func New(
 		tokenTTL:     tokenTTl,
 	}
 }
-func (a *Auth) Login(ctx context.Context, email string, password string) (string, error) {
+func (a *Auth) Login(ctx context.Context, email string, password string) (accessToken string, refreshToken string, err error) {
 	const op = "auth.Login"
 
 	log := a.log.With(
@@ -76,25 +76,25 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (string
 		if errors.Is(err, repository.ErrUserNotFound) {
 			a.log.Warn("user not found ", err)
 
-			return "", fmt.Errorf("%s:%w", op, ErrInvalidUserCredentials)
+			return "", "", fmt.Errorf("%s:%w", op, ErrInvalidUserCredentials)
 		}
 		a.log.Error("failed to get user", err)
 
-		return "", fmt.Errorf("%s:%w", op, err)
+		return "", "", fmt.Errorf("%s:%w", op, err)
 	}
 	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
 		a.log.Info("invalid credentials ", err)
-		return "", fmt.Errorf("%s:%w", op, ErrInvalidUserCredentials)
+		return "", "", fmt.Errorf("%s:%w", op, ErrInvalidUserCredentials)
 	}
 
-	token, err := jwt.NewToken(user, a.tokenTTL)
+	accessToken, refreshToken, err = jwt.NewTokenPair(user, a.tokenTTL)
 	if err != nil {
 		a.log.Error("failed to generate token", err)
 
-		return "", fmt.Errorf("%s:%w", op, err)
+		return "", "", fmt.Errorf("%s:%w", op, err)
 	}
 
-	return token, nil
+	return accessToken, refreshToken, nil
 }
 func (a *Auth) RegisterNewUser(ctx context.Context, email string, phone string, dateOfBirth string, password string, username string) (string, error) {
 	const op = "auth.RegisterNewUser"
