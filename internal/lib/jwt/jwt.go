@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"fmt"
 	"github.com/c1tad3l/wedo-auth-grpc-/internal/domain/models"
 	"github.com/golang-jwt/jwt/v5"
 	"time"
@@ -8,16 +9,24 @@ import (
 
 var Secret string = "eerstyrjndrfbsrvaegrthryj"
 
-func NewToken(user models.User, duration time.Duration) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["user_uuid"] = user.Uuid
-	claims["email"] = user.Email
-	claims["exp"] = time.Now().Add(duration).Unix()
+func NewTokenPair(user models.User, duration time.Duration) (at string, rt string, err error) {
 
-	tokenString, err := token.SignedString([]byte(Secret))
+	aToken := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		"sub": user.Uuid,
+		"exp": duration,
+	})
+
+	accessToken, err := aToken.SignedString([]byte(Secret))
 	if err != nil {
-		return "", err
+		return "", "", fmt.Errorf("failed to generate access token: %v", err)
 	}
-	return tokenString, nil
+	rToken := jwt.NewWithClaims(jwt.SigningMethodHS512, jwt.MapClaims{
+		"sub": user.Uuid,
+	})
+
+	refreshToken, err := rToken.SignedString([]byte(Secret))
+	if err != nil {
+		return "", "", fmt.Errorf("failed to generate refresh token: %v", err)
+	}
+	return accessToken, refreshToken, nil
 }

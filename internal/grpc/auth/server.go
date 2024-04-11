@@ -15,7 +15,7 @@ import (
 )
 
 type Auth interface {
-	Login(ctx context.Context, email string, password string) (token string, err error)
+	Login(ctx context.Context, email string, password string) (accessToken string, refreshToken string, err error)
 	RegisterNewUser(ctx context.Context, email string, password string, phone string, dateOfBirth string, username string) (uerUuid string, err error)
 	IsAdmin(ctx context.Context, userUuid string) (bool, error)
 	Logout(ctx context.Context, token string) (bool, error)
@@ -39,7 +39,7 @@ func (s *serverApi) Login(ctx context.Context, req *authV1.LoginRequest) (*authV
 		return nil, err
 	}
 
-	token, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword())
+	accessToken, refreshToken, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword())
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidUserCredentials) {
 			return nil, status.Error(codes.InvalidArgument, "invalid email or password")
@@ -51,15 +51,21 @@ func (s *serverApi) Login(ctx context.Context, req *authV1.LoginRequest) (*authV
 		fmt.Println("gRPC call failed:", err)
 	}
 
-	md := metadata.Pairs("Authorization", "Bearer "+token)
+	md := metadata.Pairs("Authorization", accessToken)
+	err = grpc.SendHeader(ctx, md)
+	if err != nil {
+		return nil, err
+	}
+
+	md = metadata.Pairs("RefreshToken", refreshToken)
 	err = grpc.SendHeader(ctx, md)
 	if err != nil {
 		return nil, err
 	}
 
 	return &authV1.LoginResponse{
-		AccessToken:  token,
-		RefreshToken: token, ///На время
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}, nil
 
 }
