@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS users
    email varchar(255) NOT NULL Unique,
    username varchar(255) NOT NULL,
    phone varchar(255) NOT NULL Unique,
-   dateOfBirth Date NOT null,
+   dateOfBirth varchar(255) NOT null,
    pass_hash TEXT NOT NULL
 );
 Create index if not exists idx_email on users(email);

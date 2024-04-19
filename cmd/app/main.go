@@ -1,10 +1,16 @@
 package main
 
 import (
+	"context"
 	"github.com/c1tad3l/wedo-auth-grpc-/internal/app"
 	"github.com/c1tad3l/wedo-auth-grpc-/internal/config"
 	"github.com/c1tad3l/wedo-auth-grpc-/internal/lib/logger/handlers/slogpretty"
+	authV1 "github.com/c1tad3l/wedo-auth-grpc-/pkg/auth"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,6 +34,35 @@ func main() {
 	application := app.New(log, cfg.Grpc.Port, cfg.StoragePath, cfg.TokenTTL)
 
 	go application.GRPCSrv.MustRun()
+
+	//gateway
+
+	conn, err := grpc.NewClient(
+		"0.0.0.0:45044",
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+
+	if err != nil {
+		log.Error("Failed to dial server:", err)
+	}
+	gwmux := runtime.NewServeMux()
+
+	err = authV1.RegisterAuthHandler(context.Background(), gwmux, conn)
+
+	if err != nil {
+		log.Error("Failed to register gateway:", err)
+	}
+
+	gwServer := &http.Server{
+		Addr:    ":8090",
+		Handler: gwmux,
+	}
+
+	err = gwServer.ListenAndServe()
+	if err != nil {
+		log.Error("Failed to listen")
+		return
+	}
 
 	//Graceful shutdown
 

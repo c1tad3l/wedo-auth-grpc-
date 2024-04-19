@@ -1,0 +1,17 @@
+type: google.api.Service
+
+config_version: 3
+
+http:
+  rules:
+    - selector: auth.Auth.Register
+      post: /register
+      body: "*"
+    - selector: auth.Auth.Login
+      post: /login
+      body: "*"
+    - selector: auth.Auth.IsAdmin
+      get: /is-admin
+    - selector: auth.Auth.Logout
+      post: /logout
+      body: "*"

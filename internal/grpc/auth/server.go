@@ -40,6 +40,7 @@ func (s *serverApi) Login(ctx context.Context, req *authV1.LoginRequest) (*authV
 	}
 
 	accessToken, refreshToken, err := s.auth.Login(ctx, req.GetEmail(), req.GetPassword())
+
 	if err != nil {
 		if errors.Is(err, auth.ErrInvalidUserCredentials) {
 			return nil, status.Error(codes.InvalidArgument, "invalid email or password")
@@ -52,11 +53,6 @@ func (s *serverApi) Login(ctx context.Context, req *authV1.LoginRequest) (*authV
 	}
 
 	md := metadata.Pairs("Authorization", accessToken)
-	err = grpc.SendHeader(ctx, md)
-	if err != nil {
-		return nil, err
-	}
-
 	md = metadata.Pairs("RefreshToken", refreshToken)
 	err = grpc.SendHeader(ctx, md)
 	if err != nil {
@@ -75,7 +71,7 @@ func (s *serverApi) Register(ctx context.Context,
 		return nil, err
 	}
 
-	userUuid, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPassword(), req.GetPhone(), req.GetDateOfBirth(), req.GetUsername())
+	userUuid, err := s.auth.RegisterNewUser(ctx, req.GetEmail(), req.GetPhone(), req.GetDateOfBirth(), req.GetPassword(), req.GetUsername())
 	if err != nil {
 		if errors.Is(err, repository.ErrUserExists) {
 			return nil, status.Error(codes.AlreadyExists, "user already exists")
@@ -85,6 +81,7 @@ func (s *serverApi) Register(ctx context.Context,
 	return &authV1.RegisterResponse{
 		UserUuid: userUuid,
 	}, nil
+
 }
 func (s *serverApi) IsAdmin(ctx context.Context, req *authV1.IsAdminRequest) (*authV1.IsAdminResponse, error) {
 	if err := validateIsAdmin(req); err != nil {
