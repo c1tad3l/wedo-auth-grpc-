@@ -69,6 +69,5 @@ docker build -t  {Название аккаунта/ название серви
 
 
 <h1>Запуск программы</h1>
-```shell 
+
  go run cmd/app/main.go --config=config/local.yaml   
-```
