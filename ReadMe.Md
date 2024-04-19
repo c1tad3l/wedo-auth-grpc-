@@ -66,3 +66,9 @@ Example for request body data
 ```shell
 docker build -t  {Название аккаунта/ название сервиса: версия} -f Dockerfile .
 ```
+
+
+<h1>Запуск программы</h1>
+```shell 
+ go run cmd/app/main.go --config=config/local.yaml   
+```
