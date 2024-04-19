@@ -1,6 +1,8 @@
 <h1>Для работы с сервисом </h1>
 
 
+<h1>http:/localhost:8090</h1>
+
 ```shell
 docker pull postgres
 ```
@@ -33,11 +35,11 @@ Example for request body data
 
 ```json
 {
-    "email": "",
-    "password":"",
-    "phone": "",
-    "dateOfBirth": "",
-    "username": ""
+    "Email": "",
+    "Password":"",
+    "Phone": "",
+    "DateOfBirth": "",
+    "Username": ""
 }
 ```
 

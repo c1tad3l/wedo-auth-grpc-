@@ -2,8 +2,6 @@ syntax="proto3";
 
 package auth;
 
-import "google/protobuf/wrappers.proto";
-
 option go_package="github.com/c1tad3l/wedo-auth-grpc-/auth/auth;authV1";
 
 service Auth{

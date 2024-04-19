@@ -28,7 +28,7 @@ func New(storagePath string) (*Storage, error) {
 func (s *Storage) Stop() error {
 	return s.db.Close()
 }
-func (s *Storage) SaveUser(ctx context.Context, uuid string, email string, passHash []byte, phone string, dateOfBirth string, username string) (uuids string, err error) {
+func (s *Storage) SaveUser(ctx context.Context, uuid string, email string, passHash string, phone string, dateOfBirth string, username string) (uuids string, err error) {
 	const op = "repository.postgres.SaveUser"
 
 	sqlQuery := `INSERT INTO users(uuid ,email,phone,dateOfBirth, pass_hash,username) VALUES($1,$2,$3,$4,$5,$6)`
@@ -55,9 +55,9 @@ func (s *Storage) User(ctx context.Context, email string) (models.User, error) {
 	err := s.db.QueryRowContext(ctx, "SELECT uuid,email,pass_hash,phone,dateOfBirth,username FROM users WHERE email =$1", email).Scan(
 		&user.Uuid,
 		&user.Email,
+		&user.PassHash,
 		&user.Phone,
 		&user.DateOfBirth,
-		&user.PassHash,
 		&user.Username,
 	)
 

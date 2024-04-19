@@ -25,7 +25,7 @@ type UserSaver interface {
 		ctx context.Context,
 		uuid string,
 		email string,
-		passHash []byte,
+		passHash string,
 		phone string,
 		dateOfBirth string,
 		username string,
@@ -82,11 +82,11 @@ func (a *Auth) Login(ctx context.Context, email string, password string) (access
 
 		return "", "", fmt.Errorf("%s:%w", op, err)
 	}
-	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.PassHash), []byte(password)); err != nil {
 		a.log.Info("invalid credentials ", err)
 		return "", "", fmt.Errorf("%s:%w", op, ErrInvalidUserCredentials)
 	}
-
 	accessToken, refreshToken, err = jwt.NewTokenPair(user, a.tokenTTL)
 	if err != nil {
 		a.log.Error("failed to generate token", err)
@@ -102,9 +102,9 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, phone string, 
 	log := a.log.With(
 		slog.String("op", op),
 	)
-
+	fmt.Println(password)
 	log.Info("registering user")
-	passHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	passHash, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 
 	if err != nil {
 		log.Error("failed to generate hash password ", err)
@@ -120,7 +120,7 @@ func (a *Auth) RegisterNewUser(ctx context.Context, email string, phone string, 
 
 	newUuids := uid.String()
 
-	uuid, err := a.userSaver.SaveUser(ctx, newUuids, email, passHash, phone, dateOfBirth, username)
+	uuid, err := a.userSaver.SaveUser(ctx, newUuids, email, string(passHash), phone, dateOfBirth, username)
 
 	if err != nil {
 		fmt.Println(err)
